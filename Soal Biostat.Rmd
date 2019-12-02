@@ -1,0 +1,254 @@
+---
+title: "Tutor Biostat bersama Fabi Fuu"
+author: "Fabi Fuu"
+output: html_document
+---
+Disponsori oleh ``R markdown``
+
+## Soal Nomor 1
+  
+### Pengolahan Data Frame
+
+Membuat *tibble* dari soal
+```{R}
+library(tibble)
+Pupuk <- tribble(
+  ~"50g",  ~"100g",  ~"200g",
+  13.2,  16.0,   7.8,
+  12.4,  12.6,   14.4,
+  12.8,  14.8,   20.0,
+  17.2,  13.0,   15.8,
+  13.0,  14.0,   17.0,
+  14.0,  23.6,   27.0
+)
+```
+
+Tidyverse! 
+```{R}
+library(tidyr)
+Pupuk_tidy <- Pupuk %>% 
+  gather("50g", "100g", "200g", key = "Konsentrasi", value = "Tinggi")
+```
+
+Mencari mean, median, dan std untuk tiga kelompok perlakuan
+```{R}
+library(dplyr)
+summary <- group_by(Pupuk_tidy, Konsentrasi) %>%
+  summarise(
+    countzz = n(),
+    mean = mean(Tinggi),
+    median = median(Tinggi),
+    std = sd(Tinggi)
+  )
+```
+
+### Soal Nomor 1.A
+Tentukan CI 99% untuk perlakuan ke-2!
+
+Ekstrak n, mean, dan std untuk perlakuan ke-2
+```{R}
+count_2 <- summary[[3,2]]
+mean_2 <- summary[[3,3]]
+std_2 <- summary[[3,5]]
+```
+
+Tentukan $z_\alpha$
+```{R}
+alpha = 0.01
+z_alpha = qnorm(1 - alpha/2)
+```
+
+Mengitung batas. Ingat, ini SATU POPULASI dengan VARIANSI diketahui. Pakai rumus $\bar x - z_\frac{\alpha}{2} \frac{\sigma}{\sqrt{n}}$ dan $\bar x + z_\frac{\alpha}{2} \frac{\sigma}{\sqrt{n}}$
+```{R}
+UB <- mean_2 - z_alpha * std_2 / sqrt(count_2)
+LB <- mean_2 + z_alpha * std_2 / sqrt(count_2)
+```
+
+### Soal Nomor 1.B
+Karena ada kata *pengaruh*, maka pakai ANOVA *one-way*. Rumusnya kalian sudah bisa lah, *ya* ...
+
+```{R}
+# ANOVA
+# group.1, group.2, etc. should be numerical (ORDINAL / MEASUREMENT data type)
+# variabel should be "group of" those numerical value. variabel usually has NOMINAL data type
+
+anova.pupuk <- aov(Tinggi ~ Konsentrasi, data = Pupuk_tidy)
+summary(anova.pupuk)
+```
+
+Dapat dilihat bahwa *p-value*-nya $0.471$. Jika $\alpha = 0.05$, maka sehingga hipotesis awal ditolak.
+
+### Soal Nomor 1.C
+Kita perlu mencari selisih antara perlakuan 1 dan 2 (alias 50g dan 100g). 
+```{R}
+selisih <- Pupuk %>%
+  mutate(
+    selisih = abs(`100g` - `50g`)
+  )
+```
+
+Tidyverse! 
+```{R}
+library(tidyr)
+Selisih_tidy <- selisih %>% 
+  gather("50g", "100g", "200g", "selisih", key = "Konsentrasi", value = "Tinggi")
+```
+
+Mencari mean, median, dan std untuk tiga kelompok perlakuan
+```{R}
+library(dplyr)
+summary <- group_by(Selisih_tidy, Konsentrasi) %>%
+  summarise(
+    countzz = n(),
+    mean = mean(Tinggi),
+    median = median(Tinggi),
+    std = sd(Tinggi)
+  )
+```
+
+Ekstrak n, mean, dan std untuk perlakuan selisih
+```{R}
+count_2 <- summary[[4,2]]
+mean_2 <- summary[[4,3]]
+std_2 <- summary[[4,5]]
+```
+
+Tentukan $z_\alpha$
+alpha = 0.05
+z_alpha = qnorm(1 - alpha/2)
+
+Mengitung batas. Ingat, ini SATU POPULASI dengan VARIANSI diketahui. Pakai rumus $\bar x - z_\frac{\alpha}{2} \frac{\sigma}{\sqrt{n}}$ dan $\bar x + z_\frac{\alpha}{2} \frac{\sigma}{\sqrt{n}}$
+```{R}
+UB <- mean_2 - z_alpha * std_2 / sqrt(count_2)
+LB <- mean_2 + z_alpha * std_2 / sqrt(count_2)
+```
+
+## Soal Nomor 2
+
+### Pengolahan Data Frame
+Ini tabel paling nggak *tidy* se-Dunia!
+
+```{R}
+Obat <- tribble(
+  ~"Obat_A",  ~"Obat_B",  ~"Obat_C",
+  5,  9,   7,
+  4,  7,   6,
+  8,  8,   9,
+  6,  6,   4,
+  3,  9,   7,
+  3,  3,   2,
+  5,  7,   3,
+  2,  4,   4,
+  NA, 1, NA
+)
+```
+
+Kemudian kita tidy-kan!
+```{R}
+Obat_tidy <- Obat %>% 
+  gather("Obat_A", "Obat_B", "Obat_C", key = "Jenis_Obat", value = "Waktu_sembuh")
+```
+
+### Informasi pada Soal
+Penelitian sebelumnya menyimpulkan:
+
+* $Obat A < 6$ jam
+* $|Obat_A - Obat_B| = 1$ jam
+* *p value* dari T-Test untuk B & C $< 0.05$ menggunakan $\alpha = 0.05$
+* Rataan kesembuhan tiga merek berbeda
+
+Asumsi:
+
+* Distribusi normal
+* Observasi saling bebas
+* Variansi sama
+
+Dari asumsi di atas, artinya kita boleh ber-ANOVA-ria.
+
+### Soal Nomor 2.A
+
+Sama seperti tadi: **Mencari CI untuk satu populasi dengan STD yang diketahui**. Daripada berlama-lama kita pakai *package* saja.
+```{R}
+library(Rmisc)
+
+#Ekstract Column
+obat_a <- Obat[,1]
+obat_b <- Obat[,2]
+obat_c <- Obat[,3]
+
+# Jadikan vektor menjadi list (just R programming stuff...)
+ObatA <- as.numeric(unlist(obat_a))
+ObatB <- as.numeric(unlist(obat_b))
+ObatC <- as.numeric(unlist(obat_c))
+
+# Jalankan Rmisc!
+CI(ObatA, ci = 0.95)
+CI(ObatB, ci = 0.95)
+CI(ObatC, ci = 0.95)
+```
+
+### Soal Nomor 2.B
+Apakah hasil penelitian sesuai dengan hasil penelitian sebelumnya? Penelitian sebelumnya:
+
+**Kesimpulan pertama** $\bar{Obat A} < 6$ jam
+
+$6.11 > 4.50 > 2.88 \rightarrow$ **BENAR**
+
+**Kesimpulan kedua** $|\bar {Obat_A} - \bar {Obat_B} | = 1$ jam
+
+$| 6.11 - 8.14 | > | 4.50 - 6.00 | > |2.88 - 3.86|$
+
+$2.03 > 1.5 > 0.98 \rightarrow$ **SALAH**
+
+**Kesimpulan ketiga** *p value* dari T-Test untuk B & C $< 0.05$ menggunakan $\alpha = 0.05$
+
+
+```{R}
+t.test(ObatB, ObatC)
+```
+
+Hasil *p value* = 0.558 > 0.05, jadi tidak signifikan. Kesimpulan **SALAH**
+
+**Kesimpulan keempat** Rataan kesembuhan tiga merek berbeda.
+
+Karena ada tiga merek obat, berarti ada tiga populasi yang berbeda. Artinya, kita gunakan ANOVA.
+
+```{R}
+# A N O V A
+# group.1, group.2, etc. should be numerical (ORDINAL / MEASUREMENT data type)
+# variabel should be "group of" those numerical value. variabel usually has NOMINAL data type
+
+anova.obat <- aov(Waktu_sembuh ~ Jenis_Obat, data = Obat_tidy, na.rm=TRUE)
+summary(anova.obat)
+```
+
+Karena *p value* = 0.452 > 0.05, jadi tidak ada perbedaan rerata yang signifikan. Kesimpulan **SALAH**
+
+## Soal Nomor 3
+```{R}
+Etawa <- tribble(
+  ~"MetodeA",  ~"MetodeB",  ~"MetodeC",
+  84.6,  87.3,   87.2,
+  83.3,  85.9,  88.2,
+  85.1,  88.2,   86.3,
+)
+```
+
+Kemudian kita tidy-kan!
+```{R}
+Etawa_tidy <- Etawa %>% 
+  gather("MetodeA", "MetodeB", "MetodeC", key = "Metode", value = "Berat")
+```
+
+```{R}
+# A N O V A
+# group.1, group.2, etc. should be numerical (ORDINAL / MEASUREMENT data type)
+# variabel should be "group of" those numerical value. variabel usually has NOMINAL data type
+
+anova.etawa <- aov(Berat ~ Metode, data = Etawa_tidy)
+summary(anova.obat)
+```
+
+Tidak ada yang signifikan, baik untuk $\alpha$ 0.01 maupun 0.05.
+
+## Soal Nomor 4
