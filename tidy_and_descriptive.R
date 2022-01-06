@@ -15,7 +15,7 @@ library(tidyr)
 # Import data
 ## We use a messy data
 data_raw <- 
-   read.csv(file="~/Bioinformatics/Biostatistics/cancer_tp53_messy.csv", header = FALSE)
+   read.csv(file="./cancer_tp53_messy.csv", header = FALSE)
 
 ## Explanation of raw data example
 ### This is a standard RT-qPCR experiment to find the relative expression of p53 gene.
