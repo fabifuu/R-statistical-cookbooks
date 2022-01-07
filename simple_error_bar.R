@@ -219,3 +219,5 @@ ggplot(
       x = "Dose (mg/day)",
       y = "Length (mm)",
       fill = "Supplement")
+
+# Faceting with slightly complex data

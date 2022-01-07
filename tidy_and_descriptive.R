@@ -12,6 +12,9 @@ library(dplyr)
 library(ggplot2)
 library(tidyr)
 
+# Set working directory
+setwd("~/Bioinformatics/Biostatistics/")
+
 # Import data
 ## We use a messy data
 data_raw <- 
@@ -78,7 +81,9 @@ data_tidy <- data_tidy %>%
 data_tidy
 
 ### save as csv file
-write.csv(data_tidy, file = "a/path/tp53_tidy.csv")
+write.csv(data_tidy, file = "./plant_tidy.csv")
+
+# More Advanced Tidy
 
 # Descriptive statistics using dplyr
 library(dplyr)
