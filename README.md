@@ -8,6 +8,10 @@ Statistics and data visualization are the heart in life science. Complexity of b
 This repository is for whomever want to learn R and statistics! However, since I am a noob, logically it follows that the main audience of this repository are also noobs. Yes, it is beginner friendly and contain detailed comment in every operation!
 
 ## Tidy and Descriptive: Wrangling and Cleaning Data
+File included:
+`tidy_and_descriptive.R`
+`tidy_and_descriptive_advanced.R`
+
 In biology, experiment results usually compiled by hand. It's not always the case that experimental data are given by computer, except for bioinformatics-related experiment such as genomics analysis, RNA-seq, etc. (that's why I spesifically mentioned that this repository exclude bioinformatics). This the "usual" scenario: you make a sheet of paper containing a blank table, and you measure something for certain period of times. Whether it's the height of a plant, Ct value of qPCR, or abundance of certain species, the data that you have compiled are **easy for you to write and read**.  However, this type data are, for obvious reason, **very hard** for computer to read! You have three header stacking on top of each other, with no proper column variable! (See picture below). Indeed, the very first obstacle for us to do R in data analyis are the difficulty of wrangling and cleaning a data set before actual statistical analysis and data visualization began.
 
 ![Tidy data poster](./Picture/Tidy_data_banner.png)
